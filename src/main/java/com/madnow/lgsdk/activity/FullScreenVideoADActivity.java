@@ -85,9 +85,8 @@ public class FullScreenVideoADActivity {
             @Override
             public void onError(int code, String message) {
                 Log.e(TAG, "onError: code:" + code + ",message:" + message);
-                TToast.show(mContext, message);
+//                TToast.show(mContext, message);
                 LgSdkService.getInstance().adsError(mCodeId, AppMacros.AT_FullScreenVideo,code,message);
-
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -99,7 +98,7 @@ public class FullScreenVideoADActivity {
             @Override
             public void onFullScreenVideoAdLoad(LGFullScreenVideoAd LGFullScreenVideoAd) {
                 Log.e(TAG, "onFullScreenVideoAdLoad");
-                TToast.show(mContext,"FullVideoAd loaded");
+//                TToast.show(mContext,"FullVideoAd loaded");
                 fullScreenVideoAd = LGFullScreenVideoAd;
                 LgSdkService.getInstance().adsLoaded(mCodeId, AppMacros.AT_FullScreenVideo);
             }
