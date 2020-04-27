@@ -2,6 +2,7 @@ package com.madnow.lgsdk.activity;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
@@ -51,10 +52,10 @@ public class RewardVideoADActivity {
         LGSDK.requestPermissionIfNecessary(mContext);
         mCodeId = codeId;
 
-        load();
+        loadAd();
     }
 
-    private void load(){
+    private void loadAd(){
         loadAd(mCodeId,LGRewardVideoAdDTO.ORIENTATION_VERTICAL);
     }
 
@@ -84,9 +85,17 @@ public class RewardVideoADActivity {
         lgADManager.loadRewardVideoAd(rewardVideoADDTO, new LGAdManager.RewardVideoAdListener() {
             @Override
             public void onError(int code, String message) {
-                TToast.show(mContext, message);
+//                TToast.show(mContext, message);
                 Log.e(TAG, "code:" + code + ",message:" + message);
                 LgSdkService.getInstance().adsError(mCodeId, AppMacros.AT_FullScreenVideo,code,message);
+
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        loadAd();
+                    }
+                }, 15000);
+
             }
 
             @Override
@@ -138,7 +147,7 @@ public class RewardVideoADActivity {
                 Log.e(TAG, "rewardVideoAd close");
                 LgSdkService.getInstance().adsClosed(mCodeId, AppMacros.AT_RewardVideo,"");
 
-                load();
+                loadAd();
             }
 
             //视频播放完成回调
@@ -147,13 +156,13 @@ public class RewardVideoADActivity {
              * 视频播放完毕的回调
              */
             public void onVideoComplete() {
-                TToast.show(mContext, "rewardVideoAd complete");
+//                TToast.show(mContext, "rewardVideoAd complete");
                 Log.e(TAG, "rewardVideoAd complete");
             }
 
             @Override
             public void onVideoError() {
-                TToast.show(mContext, "rewardVideoAd error");
+//                TToast.show(mContext, "rewardVideoAd error");
                 Log.e(TAG, "rewardVideoAd error");
             }
 
@@ -167,19 +176,14 @@ public class RewardVideoADActivity {
             //视频播放完成后，奖励验证回调，rewardVerify：是否有效，rewardAmount：奖励数量，rewardName：奖励名称
             @Override
             public void onRewardVerify(boolean rewardVerify, int rewardAmount, String rewardName) {
-                TToast.show(mContext, "verify:" + rewardVerify + " amount:" + rewardAmount +
-                        " name:" + rewardName);
-                Log.e(TAG, "verify:" + rewardVerify + " amount:" + rewardAmount +
-                        " name:" + rewardName);
-                if(rewardVerify){
-                    LgSdkService.getInstance().adsVideoComplete(mCodeId, AppMacros.AT_RewardVideo,"");
-                }
-
+//                TToast.show(mContext, "verify:" + rewardVerify + " amount:" + rewardAmount +  " name:" + rewardName);
+                Log.e(TAG, "verify:" + rewardVerify + " amount:" + rewardAmount +  " name:" + rewardName);
+                LgSdkService.getInstance().adsVideoComplete(mCodeId, AppMacros.AT_RewardVideo,"");
             }
 
             @Override
             public void onSkippedVideo() {
-                TToast.show(mContext, "onSkippedVideo");
+//                TToast.show(mContext, "onSkippedVideo");
                 Log.e(TAG, "onSkippedVideo");
                 LgSdkService.getInstance().adsSkippedVideo(mCodeId, AppMacros.AT_RewardVideo,"");
             }
@@ -197,32 +201,32 @@ public class RewardVideoADActivity {
             public void onDownloadActive(long totalBytes, long currBytes, String fileName, String appName) {
                 if (!mHasShowDownloadActive) {
                     mHasShowDownloadActive = true;
-                    TToast.show(mContext, "下载中，点击下载区域暂停", Toast.LENGTH_LONG);
+//                    TToast.show(mContext, "下载中，点击下载区域暂停", Toast.LENGTH_LONG);
                     Log.e(TAG, "onDownloadActive");
                 }
             }
 
             @Override
             public void onDownloadPaused(long totalBytes, long currBytes, String fileName, String appName) {
-                TToast.show(mContext, "下载暂停，点击下载区域继续", Toast.LENGTH_LONG);
+//                TToast.show(mContext, "下载暂停，点击下载区域继续", Toast.LENGTH_LONG);
                 Log.e(TAG, "onDownloadPaused");
             }
 
             @Override
             public void onDownloadFailed(long totalBytes, long currBytes, String fileName, String appName) {
-                TToast.show(mContext, "下载失败，点击下载区域重新下载", Toast.LENGTH_LONG);
+//                TToast.show(mContext, "下载失败，点击下载区域重新下载", Toast.LENGTH_LONG);
                 Log.e(TAG, "onDownloadFailed");
             }
 
             @Override
             public void onDownloadFinished(long totalBytes, String fileName, String appName) {
-                TToast.show(mContext, "下载完成，点击下载区域重新下载", Toast.LENGTH_LONG);
+//                TToast.show(mContext, "下载完成，点击下载区域重新下载", Toast.LENGTH_LONG);
                 Log.e(TAG, "onDownloadFinished");
             }
 
             @Override
             public void onInstalled(String fileName, String appName) {
-                TToast.show(mContext, "安装完成，点击下载区域打开", Toast.LENGTH_LONG);
+//                TToast.show(mContext, "安装完成，点击下载区域打开", Toast.LENGTH_LONG);
                 Log.e(TAG, "onInstalled");
             }
         });

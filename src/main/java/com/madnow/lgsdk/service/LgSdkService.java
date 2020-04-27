@@ -18,7 +18,8 @@ public class LgSdkService  extends AdInterface {
 
     private static LgSdkService mService = null;
     private Activity mActivity;
-    private boolean mIsVideoComplete;
+    private int mVideoCompleteStatus;//0为完成;1发放成功；2发送失败
+    private boolean mIsSkipped;
     private String nPlaceId;
 
     private RewardVideoADActivity mRewardVideoAd;
@@ -43,10 +44,7 @@ public class LgSdkService  extends AdInterface {
                              final String bannerId) {
         mActivity = activity;
         initConfig(aid);
-
-        for (int i = 0; i < 6; i ++){
-            isLoaded[i] = false;
-        }
+        isLoaded = new boolean[7];
         mRewardVideoAd = new RewardVideoADActivity();
         mRewardVideoAd.init(mActivity,rewardId);
 
@@ -63,7 +61,7 @@ public class LgSdkService  extends AdInterface {
                 .showFailToast(false)//当静默登录方式登录失败时候 是否由SDK弹出toast提示
                 .appName("广告变现测试DEMO")
 //                .abTestVersion("123,111")//该配置为 optional 如果申请了AB测试 那么可以配置，否则可以忽略
-                .debug(true)//只为调试使用 release的时候 请删除该配置
+//                .debug(true)//只为调试使用 release的时候 请删除该配置
                 .build();
 
         LGSDK.init(mActivity.getApplicationContext(), lgConfig);
@@ -87,12 +85,16 @@ public class LgSdkService  extends AdInterface {
 //        });
     }
 
-
+    //region 广告回调
+    /*********************************************************************************************************
+     *
+     * @param codeId
+     * @param adsType
+     */
     public void adsLoaded(String codeId, int adsType) {
         Log.d(TAG, "MainActivity adsType:" + adsType + " 加载成功");
         isLoaded[adsType] = true;
     }
-
 
     public void adsShown(String codeId, int adsType) {
         Log.d(TAG, "MainActivity adsType:" + adsType + " 展示成功");
@@ -112,24 +114,26 @@ public class LgSdkService  extends AdInterface {
         Log.d(TAG, "MainActivity adsType:" + adsType + " 关闭成功");
         isLoaded[adsType] = false;
         if (adsType == AppMacros.AT_RewardVideo) {
-            if (mIsVideoComplete) {
+            if (mVideoCompleteStatus == 1) {
                 if (mCallBack != null) {
                     mCallBack.onCallBack(AppMacros.AT_RewardVideo, AppMacros.CALL_SUCCESS,nPlaceId);
                 }
             } else {
                 if (mCallBack != null) {
-                    mCallBack.onCallBack(AppMacros.AT_RewardVideo, AppMacros.CALL_CANCEL, nPlaceId);
+                    if(mIsSkipped){
+                        mCallBack.onCallBack(AppMacros.AT_RewardVideo, AppMacros.CALL_SKIPPED, nPlaceId);
+                    }
+                    else {
+                        mCallBack.onCallBack(AppMacros.AT_RewardVideo, AppMacros.CALL_CANCEL, nPlaceId);
+                    }
                 }
             }
-            mIsVideoComplete = false;
+            mIsSkipped = false;
+            mVideoCompleteStatus = 0;
         }
         else {
-            int type = 0;
-            if(adsType == AppMacros.AT_FullScreenVideo){
-                type = AppMacros.AT_Interstitial;
-            }
             if (mCallBack != null) {
-                mCallBack.onCallBack(type,AppMacros.CALL_CANCEL, nPlaceId);
+                mCallBack.onCallBack(adsType,AppMacros.CALL_CANCEL, nPlaceId);
             }
         }
     }
@@ -137,21 +141,23 @@ public class LgSdkService  extends AdInterface {
     public void adsVideoComplete(String codeId, int adsType, String extraJson) {
         Log.d(TAG, "MainActivity adsType:" + adsType + " 奖励");
         if (adsType == AppMacros.AT_RewardVideo) {
-            mIsVideoComplete = true;
+            mVideoCompleteStatus = 1;
         }
     }
 
     public void adsSkippedVideo(String codeId, int adsType, String extraJson) {
         Log.d(TAG, "MainActivity adsType:" + adsType + " 奖励");
-
+        if (adsType == AppMacros.AT_RewardVideo) {
+            mIsSkipped = true;
+        }
     }
-
 
     public void adsError(String codeId, int adsType, int code, String message) {
         Log.d("TAG", "MainActivity adsType:" + adsType + " 加载失败 errCode:" + code + ", message:" + message);
     }
+    //endregion
 
-
+    //region 外部广告调用接口
     public void showAd(final int type, final String placeId, final int x, final int y) {
         Log.d(TAG, "showVideo:" + type + " placeId:" + placeId);
         nPlaceId = placeId;
@@ -182,12 +188,8 @@ public class LgSdkService  extends AdInterface {
     }
 
     public boolean checkAD(final int type, final String placeId) {
-        if (type == AppMacros.AT_Interstitial) {
-//            if (HippoAdSdk.isLoaded(FULLSCREENVIDEO_ID)) {
-//                return true;
-//            }
-        }
-        return false;
+        return isLoaded[type];
     }
+    //endregion
 
 }

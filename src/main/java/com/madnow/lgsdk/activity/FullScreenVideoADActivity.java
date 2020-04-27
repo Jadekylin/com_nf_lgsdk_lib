@@ -3,6 +3,7 @@ package com.madnow.lgsdk.activity;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -86,6 +87,13 @@ public class FullScreenVideoADActivity {
                 Log.e(TAG, "onError: code:" + code + ",message:" + message);
                 TToast.show(mContext, message);
                 LgSdkService.getInstance().adsError(mCodeId, AppMacros.AT_FullScreenVideo,code,message);
+
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        loadAd();
+                    }
+                }, 15000);
             }
 
             @Override
