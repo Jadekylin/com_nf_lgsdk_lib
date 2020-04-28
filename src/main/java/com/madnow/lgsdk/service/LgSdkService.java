@@ -3,6 +3,7 @@ package com.madnow.lgsdk.service;
 import android.app.Activity;
 import android.app.Application;
 import android.content.res.Resources;
+import android.os.Handler;
 import android.util.Log;
 
 import com.madnow.lgsdk.activity.FullScreenVideoADActivity;
@@ -21,6 +22,9 @@ public class LgSdkService  extends AdInterface {
     private int mVideoCompleteStatus;//0为完成;1发放成功；2发送失败
     private boolean mIsSkipped;
     private String nPlaceId;
+
+    private String mFullScreenId;
+    private String mRewardId;
 
     private RewardVideoADActivity mRewardVideoAd;
     private FullScreenVideoADActivity mFullScreenVideoAd;
@@ -45,13 +49,26 @@ public class LgSdkService  extends AdInterface {
         mActivity = activity;
         initConfig(aid);
         isLoaded = new boolean[7];
-        mRewardVideoAd = new RewardVideoADActivity();
-        mRewardVideoAd.init(mActivity,rewardId);
 
+        mRewardId = rewardId;
+        mFullScreenId = fullScreenId;
+
+        mRewardVideoAd = new RewardVideoADActivity();
+        mRewardVideoAd.initActivity(mActivity);
         mFullScreenVideoAd = new FullScreenVideoADActivity();
-        mFullScreenVideoAd.init(mActivity,fullScreenId);
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                loadAdData();
+            }
+        }, 20000);
     }
 
+    private void loadAdData(){
+        mRewardVideoAd.init(mRewardId);
+        mFullScreenVideoAd.init(mActivity,mFullScreenId);
+    }
 
     private void initConfig(final String aid){
         LGConfig lgConfig = new LGConfig.Builder()
@@ -72,7 +89,7 @@ public class LgSdkService  extends AdInterface {
         //防成迷
 //        LGSDK.getRealNameManager().setAntiAddictionGlobalCallback(new LGAntiAddictionGlobalCallback() {
 //            @Override
-//            public void onTriggerAntiAddiction(LGAntiAddictionGlobalResult authGlobalResult) {
+//            public void onTriggerAntiAddictionRequestPermissionIfNecessary(LGAntiAddictionGlobalResult authGlobalResult) {
 //                Log.d(TAG, "onTriggerAntiAddiction()：exit:" + authGlobalResult.exitApp
 //                        + ":errno：" + authGlobalResult.getErrNo() + ",errmsg:" + authGlobalResult.getErrMsg());
 //                // 若exitApp为true, 说明应用启动的时候触发了防沉迷策略，需要接入方关闭APP

@@ -46,16 +46,19 @@ public class RewardVideoADActivity {
 
     private Activity mContext;
     private String mCodeId;
+    private int mReconnectTimes = 0;
 
+    public void  initActivity(Context activity){
+        mContext = (Activity)activity;mRewardVideoAdList = new ArrayList<LGRewardVideoAd>();
+        mRewardVideoAdList = new ArrayList<LGRewardVideoAd>();
+    }
 
-    public void init(Context activity, final String codeId) {
-        mContext = (Activity)activity;
+    public void init(final String codeId) {
         // step1:LGADManager 广告管理类初始化
         lgADManager = LGSDK.getAdManager();
         // step2:(可选，强烈建议在合适的时机调用):申请部分权限，如read_phone_state,防止获取不了imei时候，下载类广告没有填充的问题。
-        LGSDK.requestPermissionIfNecessary(mContext);
+//        LGSDK.requestPermissionIfNecessary(mContext);
         mCodeId = codeId;
-        mRewardVideoAdList = new ArrayList<LGRewardVideoAd>();
         loadAd();
     }
 
@@ -92,14 +95,15 @@ public class RewardVideoADActivity {
 //                TToast.show(mContext, message);
                 Log.e(TAG, "code:" + code + ",message:" + message);
                 LgSdkService.getInstance().adsError(mCodeId, AppMacros.AT_FullScreenVideo,code,message);
-
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        loadAd();
-                    }
-                }, 15000);
-
+                mReconnectTimes ++;
+                if(mReconnectTimes <= 5){
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            loadAd();
+                        }
+                    }, 60000);
+                }
             }
 
             @Override
@@ -107,6 +111,7 @@ public class RewardVideoADActivity {
                 Log.e(TAG, "onRewardVideoAdLoad");
 //                mRewardVideoAd = ad;
                 boolean isAdd = true;
+                mReconnectTimes = 0;
                 for(int i = 0 ; i < mRewardVideoAdList.size(); i ++){
                     if(mRewardVideoAdList.get(i) == ad){
                         isAdd = false;
@@ -124,8 +129,10 @@ public class RewardVideoADActivity {
     }
 
     public boolean isLoaded(){
-        if(mRewardVideoAdList.size() == 0)
+        if(mRewardVideoAdList.size() == 0){
+            loadAd();
             return false;
+        }
         return true;
     }
 
