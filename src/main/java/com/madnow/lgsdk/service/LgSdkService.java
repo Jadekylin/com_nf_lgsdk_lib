@@ -162,19 +162,27 @@ public class LgSdkService  extends AdInterface {
         Log.d(TAG, "showVideo:" + type + " placeId:" + placeId);
         nPlaceId = placeId;
 
-        if(isLoaded[type]){
-            if (type == AppMacros.AT_RewardVideo) {
+        if ( type == AppMacros.AT_RewardVideo) {
+            if(mRewardVideoAd.isLoaded()) {
                 mRewardVideoAd.showAd();
             }
-            else if(type == AppMacros.AT_RewardVideo){
+            else {
+                if (mCallBack != null) {
+                    mCallBack.onCallBack(type, AppMacros.CALL_FALIED,nPlaceId);
+                }
+            }
+        }
+        else if(type == AppMacros.AT_FullScreenVideo){
+            if(isLoaded[type]) {
                 mFullScreenVideoAd.showAd();
             }
-        }
-        else {
-            if (mCallBack != null) {
-                mCallBack.onCallBack(type, AppMacros.CALL_FALIED,nPlaceId);
+            else {
+                if (mCallBack != null) {
+                    mCallBack.onCallBack(type, AppMacros.CALL_FALIED,nPlaceId);
+                }
             }
         }
+
     }
 
     public void closeAd(final int type) {

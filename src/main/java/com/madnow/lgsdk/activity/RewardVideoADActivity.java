@@ -18,6 +18,9 @@ import com.ss.union.sdk.ad.dto.LGRewardVideoAdDTO;
 import com.ss.union.sdk.ad.type.LGRewardVideoAd;
 import com.wogame.common.AppMacros;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 激励视频广告示例
  *
@@ -37,7 +40,8 @@ public class RewardVideoADActivity {
     private Button mShowAd;
 
     private LGAdManager lgADManager;
-    private LGRewardVideoAd rewardVideoAd;
+    private LGRewardVideoAd mRewardVideoAd;
+    private List<LGRewardVideoAd> mRewardVideoAdList;
     private boolean mHasShowDownloadActive = false;
 
     private Activity mContext;
@@ -51,7 +55,7 @@ public class RewardVideoADActivity {
         // step2:(可选，强烈建议在合适的时机调用):申请部分权限，如read_phone_state,防止获取不了imei时候，下载类广告没有填充的问题。
         LGSDK.requestPermissionIfNecessary(mContext);
         mCodeId = codeId;
-
+        mRewardVideoAdList = new ArrayList<LGRewardVideoAd>();
         loadAd();
     }
 
@@ -101,29 +105,49 @@ public class RewardVideoADActivity {
             @Override
             public void onRewardVideoAdLoad(LGRewardVideoAd ad) {
                 Log.e(TAG, "onRewardVideoAdLoad");
-                rewardVideoAd = ad;
+//                mRewardVideoAd = ad;
+                boolean isAdd = true;
+                for(int i = 0 ; i < mRewardVideoAdList.size(); i ++){
+                    if(mRewardVideoAdList.get(i) == ad){
+                        isAdd = false;
+                        break;
+                    }
+                }
+                if(isAdd) mRewardVideoAdList.add(ad);
                 LgSdkService.getInstance().adsLoaded(mCodeId, AppMacros.AT_RewardVideo);
+
+                if(mRewardVideoAdList.size() != 2){
+                    loadAd();
+                }
             }
         });
+    }
+
+    public boolean isLoaded(){
+        if(mRewardVideoAdList.size() == 0)
+            return false;
+        return true;
     }
 
     /**
      * 展示广告
      */
     public void showAd() {
-        if (rewardVideoAd == null) {
+
+        if (mRewardVideoAdList.size() == 0) {
             TToast.show(mContext, "请先加载广告");
             return;
         }
+        mRewardVideoAd = mRewardVideoAdList.get(0);
 //      mttRewardVideoAd.setShowDownLoadBar(false);
         // 设置用户操作交互回调，接入方可选择是否设置
-        rewardVideoAd.setInteractionCallback(new LGRewardVideoAd.InteractionCallback() {
+        mRewardVideoAd.setInteractionCallback(new LGRewardVideoAd.InteractionCallback() {
             @Override
             /**
              * 广告的展示回调 每个广告仅回调一次
              */
             public void onAdShow() {
-                TToast.show(mContext, "rewardVideoAd show");
+//                TToast.show(mContext, "rewardVideoAd show");
                 Log.e(TAG, "rewardVideoAd show");
                 LgSdkService.getInstance().adsShown(mCodeId, AppMacros.AT_RewardVideo);
             }
@@ -133,7 +157,7 @@ public class RewardVideoADActivity {
              * 广告的下载bar点击回调
              */
             public void onAdVideoBarClick() {
-                TToast.show(mContext, "rewardVideoAd bar click");
+//                TToast.show(mContext, "rewardVideoAd bar click");
                 Log.e(TAG, "rewardVideoAd bar click");
                 LgSdkService.getInstance().adsClicked(mCodeId, AppMacros.AT_RewardVideo);
             }
@@ -143,7 +167,7 @@ public class RewardVideoADActivity {
              * 广告关闭的回调
              */
             public void onAdClose() {
-                TToast.show(mContext, "rewardVideoAd close");
+//                TToast.show(mContext, "rewardVideoAd close");
                 Log.e(TAG, "rewardVideoAd close");
                 LgSdkService.getInstance().adsClosed(mCodeId, AppMacros.AT_RewardVideo,"");
 
@@ -190,7 +214,7 @@ public class RewardVideoADActivity {
         });
 
         // 设置下载回调，接入方可选择是否设置
-        rewardVideoAd.setDownloadCallback(new LGAppDownloadCallback() {
+        mRewardVideoAd.setDownloadCallback(new LGAppDownloadCallback() {
             @Override
             public void onIdle() {
                 mHasShowDownloadActive = false;
@@ -235,9 +259,9 @@ public class RewardVideoADActivity {
 //        rewardVideoAd.showRewardVideoAd(RewardVideoADActivity.this);
 
         //step5  展示广告，并传入广告展示的场景
-        rewardVideoAd.showRewardVideoAd(mContext, TTAdConstant.RitScenes.CUSTOMIZE_SCENES, "scenes_test");
-
-        rewardVideoAd = null;
+        mRewardVideoAd.showRewardVideoAd(mContext, TTAdConstant.RitScenes.CUSTOMIZE_SCENES, "scenes_test");
+        mRewardVideoAdList.remove(mRewardVideoAd);
+        mRewardVideoAd = null;
 
     }
 }

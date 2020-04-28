@@ -119,21 +119,21 @@ public class FullScreenVideoADActivity {
             @Override
             public void onAdShow() {
                 Log.e(TAG, "FullVideoAd show");
-                TToast.show(mContext, "FullVideoAd show");
+//                TToast.show(mContext, "FullVideoAd show");
                 LgSdkService.getInstance().adsShown(mCodeId, AppMacros.AT_FullScreenVideo);
             }
 
             @Override
             public void onAdVideoBarClick() {
                 Log.e(TAG, "FullVideoAd bar click");
-                TToast.show(mContext, "FullVideoAd bar click");
+//                TToast.show(mContext, "FullVideoAd bar click");
                 LgSdkService.getInstance().adsClicked(mCodeId, AppMacros.AT_FullScreenVideo);
             }
 
             @Override
             public void onAdClose() {
                 Log.e(TAG, "FullVideoAd close");
-                TToast.show(mContext, "FullVideoAd close");
+//                TToast.show(mContext, "FullVideoAd close");
                 LgSdkService.getInstance().adsClosed(mCodeId, AppMacros.AT_FullScreenVideo,"");
 
                 loadAd();
@@ -142,13 +142,13 @@ public class FullScreenVideoADActivity {
             @Override
             public void onVideoComplete() {
                 Log.e(TAG, "FullVideoAd complete");
-                TToast.show(mContext, "FullVideoAd complete");
+//                TToast.show(mContext, "FullVideoAd complete");
             }
 
             @Override
             public void onSkippedVideo() {
                 Log.e(TAG, "FullVideoAd skipped");
-                TToast.show(mContext, "FullVideoAd skipped");
+//                TToast.show(mContext, "FullVideoAd skipped");
             }
         });
 
@@ -165,32 +165,32 @@ public class FullScreenVideoADActivity {
                 if (!mHasShowDownloadActive) {
                     mHasShowDownloadActive = true;
                     Log.e(TAG, "onDownloadActive");
-                    TToast.show(mContext, "下载中，点击下载区域暂停", Toast.LENGTH_LONG);
+//                    TToast.show(mContext, "下载中，点击下载区域暂停", Toast.LENGTH_LONG);
                 }
             }
 
             @Override
             public void onDownloadPaused(long totalBytes, long currBytes, String fileName, String appName) {
                 Log.e(TAG, "onDownloadPaused");
-                TToast.show(mContext, "下载暂停，点击下载区域继续", Toast.LENGTH_LONG);
+//                TToast.show(mContext, "下载暂停，点击下载区域继续", Toast.LENGTH_LONG);
             }
 
             @Override
             public void onDownloadFailed(long totalBytes, long currBytes, String fileName, String appName) {
                 Log.e(TAG, "onDownloadFailed");
-                TToast.show(mContext, "下载失败，点击下载区域重新下载", Toast.LENGTH_LONG);
+//                TToast.show(mContext, "下载失败，点击下载区域重新下载", Toast.LENGTH_LONG);
             }
 
             @Override
             public void onDownloadFinished(long totalBytes, String fileName, String appName) {
                 Log.e(TAG, "onDownloadFinished" + ",filename:" + fileName + ",appName:" + appName);
-                TToast.show(mContext, "下载完成，点击下载区域重新下载", Toast.LENGTH_LONG);
+//                TToast.show(mContext, "下载完成，点击下载区域重新下载", Toast.LENGTH_LONG);
             }
 
             @Override
             public void onInstalled(String fileName, String appName) {
                 Log.e(TAG, "onInstalled" + ",filename:" + fileName + ",appName:" + appName);
-                TToast.show(mContext, "安装完成，点击下载区域打开", Toast.LENGTH_LONG);
+//                TToast.show(mContext, "安装完成，点击下载区域打开", Toast.LENGTH_LONG);
             }
         });
 
