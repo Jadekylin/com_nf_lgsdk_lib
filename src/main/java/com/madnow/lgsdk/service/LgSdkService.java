@@ -6,14 +6,18 @@ import android.content.res.Resources;
 import android.os.Handler;
 import android.util.Log;
 
+import com.bytedance.applog.AppLog;
 import com.madnow.lgsdk.activity.FullScreenVideoADActivity;
 import com.madnow.lgsdk.activity.RewardVideoADActivity;
 import com.ss.union.game.sdk.LGSDK;
 import com.ss.union.gamecommon.LGConfig;
 import com.wogame.cinterface.AdInterface;
+import com.wogame.cinterface.TeaInterface;
 import com.wogame.common.AppMacros;
 
-public class LgSdkService  extends AdInterface {
+import org.json.JSONObject;
+
+public class LgSdkService extends AdInterface {
 
     private static final String TAG = "LgSdkService";
 
@@ -25,7 +29,7 @@ public class LgSdkService  extends AdInterface {
 
     private String mFullScreenId;
     private String mRewardId;
-
+    private String mRewardId2;
     private RewardVideoADActivity mRewardVideoAd;
     private FullScreenVideoADActivity mFullScreenVideoAd;
     private boolean[] isLoaded;
@@ -43,14 +47,18 @@ public class LgSdkService  extends AdInterface {
 
     public void initActivity(Activity activity,
                              final String aid,
+                             final String channel,
+                             final String appName,
                              final String rewardId,
+                             final String rewardId2,
                              final String fullScreenId,
                              final String bannerId) {
         mActivity = activity;
-        initConfig(aid);
+        initConfig(aid,channel,appName);
         isLoaded = new boolean[7];
 
         mRewardId = rewardId;
+        mRewardId2 = rewardId2;
         mFullScreenId = fullScreenId;
 
         mRewardVideoAd = new RewardVideoADActivity();
@@ -62,21 +70,21 @@ public class LgSdkService  extends AdInterface {
             public void run() {
                 loadAdData();
             }
-        }, 20000);
+        }, 5000);
     }
 
     private void loadAdData(){
-        mRewardVideoAd.init(mRewardId);
+        mRewardVideoAd.init(mRewardId,mRewardId2);
         mFullScreenVideoAd.init(mActivity,mFullScreenId);
     }
 
-    private void initConfig(final String aid){
+    private void initConfig(final String aid,final String channel,final String appName){
         LGConfig lgConfig = new LGConfig.Builder()
                 .appID(aid)
                 .loginMode(LGConfig.LoginMode.LOGIN_SILENT)//初始化前确认游戏登录模式 静默登录或者弹框登录
-                .mChannel("官方渠道")
+                .mChannel(channel)
                 .showFailToast(false)//当静默登录方式登录失败时候 是否由SDK弹出toast提示
-                .appName("广告变现测试DEMO")
+                .appName(appName)
 //                .abTestVersion("123,111")//该配置为 optional 如果申请了AB测试 那么可以配置，否则可以忽略
 //                .debug(true)//只为调试使用 release的时候 请删除该配置
                 .build();
@@ -111,19 +119,22 @@ public class LgSdkService  extends AdInterface {
     public void adsLoaded(String codeId, int adsType) {
         Log.d(TAG, "MainActivity adsType:" + adsType + " 加载成功");
         isLoaded[adsType] = true;
+        if (mCallBack != null) {
+            mCallBack.onAdStatusListen(adsType, AppMacros.CALL_AD_LOADED, nPlaceId,codeId,"","");
+        }
     }
 
     public void adsShown(String codeId, int adsType) {
         Log.d(TAG, "MainActivity adsType:" + adsType + " 展示成功");
         if (mCallBack != null) {
-            mCallBack.onCallBack(AppMacros.AT_RewardVideo, AppMacros.CALL_AD_SHOW, nPlaceId);
+            mCallBack.onAdStatusListen(adsType, AppMacros.CALL_AD_SHOW, nPlaceId,codeId,"","");
         }
     }
 
     public void adsClicked(String codeId, int adsType) {
         Log.d(TAG, "MainActivity adsType:" + adsType + " 点击成功");
         if (mCallBack != null) {
-            mCallBack.onCallBack(AppMacros.AT_RewardVideo, AppMacros.CALL_AD_CLICK, nPlaceId);
+            mCallBack.onAdStatusListen(adsType, AppMacros.CALL_AD_CLICK, nPlaceId,codeId,"","");
         }
     }
 
@@ -133,15 +144,18 @@ public class LgSdkService  extends AdInterface {
         if (adsType == AppMacros.AT_RewardVideo) {
             if (mVideoCompleteStatus == 1) {
                 if (mCallBack != null) {
-                    mCallBack.onCallBack(AppMacros.AT_RewardVideo, AppMacros.CALL_SUCCESS,nPlaceId);
+                    mCallBack.onCallBack(AppMacros.AT_RewardVideo, AppMacros.CALL_SUCCESS,nPlaceId,codeId,"","");
+                    mCallBack.onAdStatusListen(AppMacros.AT_RewardVideo, AppMacros.CALL_SUCCESS,nPlaceId,codeId,"","");
                 }
             } else {
                 if (mCallBack != null) {
                     if(mIsSkipped){
-                        mCallBack.onCallBack(AppMacros.AT_RewardVideo, AppMacros.CALL_SKIPPED, nPlaceId);
+                        mCallBack.onCallBack(AppMacros.AT_RewardVideo, AppMacros.CALL_FALIED, nPlaceId,codeId,"","");
+                        mCallBack.onAdStatusListen(AppMacros.AT_RewardVideo, AppMacros.CALL_FALIED,nPlaceId,codeId,"","");
                     }
                     else {
-                        mCallBack.onCallBack(AppMacros.AT_RewardVideo, AppMacros.CALL_CANCEL, nPlaceId);
+                        mCallBack.onCallBack(AppMacros.AT_RewardVideo, AppMacros.CALL_CANCEL, nPlaceId,codeId,"","");
+                        mCallBack.onAdStatusListen(AppMacros.AT_RewardVideo, AppMacros.CALL_FALIED,nPlaceId,codeId,"","");
                     }
                 }
             }
@@ -150,7 +164,8 @@ public class LgSdkService  extends AdInterface {
         }
         else {
             if (mCallBack != null) {
-                mCallBack.onCallBack(adsType,AppMacros.CALL_CANCEL, nPlaceId);
+                mCallBack.onCallBack(adsType,AppMacros.CALL_CANCEL, nPlaceId,codeId,"","");
+                mCallBack.onAdStatusListen(adsType, AppMacros.CALL_FALIED,nPlaceId,codeId,"","");
             }
         }
     }
@@ -167,10 +182,12 @@ public class LgSdkService  extends AdInterface {
         if (adsType == AppMacros.AT_RewardVideo) {
             mIsSkipped = true;
         }
+        if(mCallBack!= null) mCallBack.onAdStatusListen(adsType, AppMacros.CALL_SKIPPED,nPlaceId,codeId,"","");
     }
 
     public void adsError(String codeId, int adsType, int code, String message) {
         Log.d("TAG", "MainActivity adsType:" + adsType + " 加载失败 errCode:" + code + ", message:" + message);
+        if(mCallBack!= null) mCallBack.onAdStatusListen(adsType, AppMacros.CALL_ERROR,nPlaceId,codeId,""+code,message);
     }
     //endregion
 
@@ -185,7 +202,7 @@ public class LgSdkService  extends AdInterface {
             }
             else {
                 if (mCallBack != null) {
-                    mCallBack.onCallBack(type, AppMacros.CALL_FALIED,nPlaceId);
+                    mCallBack.onCallBack(type, AppMacros.CALL_FALIED,nPlaceId,"","","");
                 }
             }
         }
@@ -195,7 +212,7 @@ public class LgSdkService  extends AdInterface {
             }
             else {
                 if (mCallBack != null) {
-                    mCallBack.onCallBack(type, AppMacros.CALL_FALIED,nPlaceId);
+                    mCallBack.onCallBack(type, AppMacros.CALL_FALIED,nPlaceId,"","","");
                 }
             }
         }
@@ -216,5 +233,8 @@ public class LgSdkService  extends AdInterface {
         return isLoaded[type];
     }
     //endregion
+
+
+
 
 }

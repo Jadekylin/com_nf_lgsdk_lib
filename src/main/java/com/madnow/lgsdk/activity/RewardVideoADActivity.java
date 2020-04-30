@@ -19,7 +19,24 @@ import com.ss.union.sdk.ad.type.LGRewardVideoAd;
 import com.wogame.common.AppMacros;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+
+
+
+class RewardAd{
+    public LGRewardVideoAd mRewardVideoAd;
+    public String mCodeId;
+    public boolean mIsReady;
+    public boolean mIsFailure;
+    public int mStatus;//0;1开始load；2load成功，3load 失败
+    public int mShowCount;//展示次数
+    public int mFailureCount;//load失败次数
+}
 
 /**
  * 激励视频广告示例
@@ -40,30 +57,55 @@ public class RewardVideoADActivity {
     private Button mShowAd;
 
     private LGAdManager lgADManager;
-    private LGRewardVideoAd mRewardVideoAd;
-    private List<LGRewardVideoAd> mRewardVideoAdList;
+    private RewardAd mRewardVideoAd;
+    private List<String> mCodeList;
+    private HashMap<String, RewardAd>mRewardVideoAdList;
     private boolean mHasShowDownloadActive = false;
 
     private Activity mContext;
-    private String mCodeId;
+//    private String mCodeId;
     private int mReconnectTimes = 0;
 
     public void  initActivity(Context activity){
-        mContext = (Activity)activity;mRewardVideoAdList = new ArrayList<LGRewardVideoAd>();
-        mRewardVideoAdList = new ArrayList<LGRewardVideoAd>();
+        mContext = (Activity)activity;
+        mCodeList = new ArrayList<>();
+        mRewardVideoAdList = new HashMap<String, RewardAd>();
+
+
     }
 
-    public void init(final String codeId) {
+    public void init(final String codeId,final String codeId2) {
         // step1:LGADManager 广告管理类初始化
         lgADManager = LGSDK.getAdManager();
         // step2:(可选，强烈建议在合适的时机调用):申请部分权限，如read_phone_state,防止获取不了imei时候，下载类广告没有填充的问题。
 //        LGSDK.requestPermissionIfNecessary(mContext);
-        mCodeId = codeId;
+//        mCodeId = codeId;
+        mCodeList.add(codeId);
+        mCodeList.add(codeId2);
+
+        RewardAd rewardAd1 = new RewardAd();
+        rewardAd1.mCodeId = codeId;
+        rewardAd1.mIsFailure = false;
+        rewardAd1.mStatus = 0;
+        mRewardVideoAdList.put(codeId,rewardAd1);
+
+        RewardAd rewardAd2 = new RewardAd();
+        rewardAd2.mCodeId = codeId2;
+        rewardAd2.mIsFailure = false;
+        rewardAd2.mStatus = 0;
+        mRewardVideoAdList.put(codeId2,rewardAd2);
+
         loadAd();
     }
 
     private void loadAd(){
-        loadAd(mCodeId,LGRewardVideoAdDTO.ORIENTATION_VERTICAL);
+        for (String key : mRewardVideoAdList.keySet()) {
+            RewardAd rewardAd = mRewardVideoAdList.get(key);
+            if(rewardAd != null &&( rewardAd.mStatus == 0 ||  rewardAd.mStatus == 3)){
+                rewardAd.mStatus = 1;
+                loadAd(rewardAd.mCodeId,LGRewardVideoAdDTO.ORIENTATION_VERTICAL);
+            }
+        }
     }
 
     /**
@@ -74,7 +116,7 @@ public class RewardVideoADActivity {
      */
     private void loadAd(String codeId, int orientation) {
         //step3:创建广告请求参数AdSlot,具体参数含义参考文档
-        LGRewardVideoAdDTO rewardVideoADDTO = new LGRewardVideoAdDTO();
+        final LGRewardVideoAdDTO rewardVideoADDTO = new LGRewardVideoAdDTO();
         rewardVideoADDTO.context = mContext;
         // 广告位ID
         rewardVideoADDTO.codeID = codeId;
@@ -94,7 +136,12 @@ public class RewardVideoADActivity {
             public void onError(int code, String message) {
 //                TToast.show(mContext, message);
                 Log.e(TAG, "code:" + code + ",message:" + message);
-                LgSdkService.getInstance().adsError(mCodeId, AppMacros.AT_FullScreenVideo,code,message);
+
+                RewardAd rewardAd = mRewardVideoAdList.get(rewardVideoADDTO.codeID);
+                rewardAd.mStatus = 3;
+                rewardAd.mFailureCount ++;
+
+                LgSdkService.getInstance().adsError(rewardVideoADDTO.codeID, AppMacros.AT_RewardVideo,code,message);
                 mReconnectTimes ++;
                 if(mReconnectTimes <= 5){
                     new Handler().postDelayed(new Runnable() {
@@ -110,30 +157,54 @@ public class RewardVideoADActivity {
             public void onRewardVideoAdLoad(LGRewardVideoAd ad) {
                 Log.e(TAG, "onRewardVideoAdLoad");
 //                mRewardVideoAd = ad;
-                boolean isAdd = true;
-                mReconnectTimes = 0;
-                for(int i = 0 ; i < mRewardVideoAdList.size(); i ++){
-                    if(mRewardVideoAdList.get(i) == ad){
-                        isAdd = false;
-                        break;
-                    }
-                }
-                if(isAdd) mRewardVideoAdList.add(ad);
-                LgSdkService.getInstance().adsLoaded(mCodeId, AppMacros.AT_RewardVideo);
 
-                if(mRewardVideoAdList.size() != 2){
-                    loadAd();
-                }
+                RewardAd rewardAd = mRewardVideoAdList.get(rewardVideoADDTO.codeID);
+                rewardAd.mStatus = 2;
+                rewardAd.mRewardVideoAd = ad;
+//                boolean isAdd = true;
+//                mReconnectTimes = 0;
+//                for(int i = 0 ; i < mRewardVideoAdList.size(); i ++){
+//                    if(mRewardVideoAdList.get(i) == ad){
+//                        isAdd = false;
+//                        break;
+//                    }
+//                }
+//                if(isAdd) mRewardVideoAdList.add(ad);
+                LgSdkService.getInstance().adsLoaded(rewardVideoADDTO.codeID, AppMacros.AT_RewardVideo);
+
+//                if(mRewardVideoAdList.size() != 2){
+//                    loadAd();
+//                }
             }
         });
     }
 
     public boolean isLoaded(){
-        if(mRewardVideoAdList.size() == 0){
-            loadAd();
-            return false;
+        for (String key : mRewardVideoAdList.keySet()) {
+            RewardAd rewardAd = mRewardVideoAdList.get(key);
+            if (rewardAd != null && rewardAd.mStatus == 2) {
+                return true;
+            }
         }
-        return true;
+        loadAd();
+        return false;
+//        if(mRewardVideoAdList.size() == 0){
+//            loadAd();
+//            return false;
+//        }
+//        return true;
+    }
+
+    private void cleanData(String codeId){
+        RewardAd rewarAd = mRewardVideoAdList.get(codeId);
+        if(rewarAd != null){
+//            rewarAd.isReady = NO;
+//            rewarAd.isValid = NO;
+            rewarAd.mStatus = 0;
+            if(rewarAd.mRewardVideoAd != null) {
+                rewarAd.mRewardVideoAd = null;
+            }
+        }
     }
 
     /**
@@ -145,10 +216,33 @@ public class RewardVideoADActivity {
             TToast.show(mContext, "请先加载广告");
             return;
         }
-        mRewardVideoAd = mRewardVideoAdList.get(0);
+        mRewardVideoAd = null;
+
+        RewardAd rewardAd = mRewardVideoAdList.get(mCodeList.get(0));
+        RewardAd rewardAd1 = mRewardVideoAdList.get(mCodeList.get(1));
+
+        if(rewardAd != null && rewardAd.mRewardVideoAd != null && rewardAd1 != null && rewardAd1.mRewardVideoAd != null){
+            if( rewardAd.mShowCount <= rewardAd1.mShowCount){
+                rewardAd.mShowCount++;
+                mRewardVideoAd = rewardAd;
+            }
+            else {
+                rewardAd1.mShowCount++;
+                mRewardVideoAd = rewardAd1;
+            }
+        }
+        else if(rewardAd!= null && rewardAd.mRewardVideoAd != null){
+            rewardAd.mShowCount++;
+            mRewardVideoAd = rewardAd;
+        }
+        else if(rewardAd1 != null && rewardAd1.mRewardVideoAd != null){
+            rewardAd1.mShowCount++;
+            mRewardVideoAd = rewardAd1;
+        }
+
 //      mttRewardVideoAd.setShowDownLoadBar(false);
         // 设置用户操作交互回调，接入方可选择是否设置
-        mRewardVideoAd.setInteractionCallback(new LGRewardVideoAd.InteractionCallback() {
+        mRewardVideoAd.mRewardVideoAd.setInteractionCallback(new LGRewardVideoAd.InteractionCallback() {
             @Override
             /**
              * 广告的展示回调 每个广告仅回调一次
@@ -156,7 +250,7 @@ public class RewardVideoADActivity {
             public void onAdShow() {
 //                TToast.show(mContext, "rewardVideoAd show");
                 Log.e(TAG, "rewardVideoAd show");
-                LgSdkService.getInstance().adsShown(mCodeId, AppMacros.AT_RewardVideo);
+                LgSdkService.getInstance().adsShown(mRewardVideoAd.mCodeId, AppMacros.AT_RewardVideo);
             }
 
             @Override
@@ -166,7 +260,7 @@ public class RewardVideoADActivity {
             public void onAdVideoBarClick() {
 //                TToast.show(mContext, "rewardVideoAd bar click");
                 Log.e(TAG, "rewardVideoAd bar click");
-                LgSdkService.getInstance().adsClicked(mCodeId, AppMacros.AT_RewardVideo);
+                LgSdkService.getInstance().adsClicked(mRewardVideoAd.mCodeId, AppMacros.AT_RewardVideo);
             }
 
             @Override
@@ -176,8 +270,9 @@ public class RewardVideoADActivity {
             public void onAdClose() {
 //                TToast.show(mContext, "rewardVideoAd close");
                 Log.e(TAG, "rewardVideoAd close");
-                LgSdkService.getInstance().adsClosed(mCodeId, AppMacros.AT_RewardVideo,"");
+                LgSdkService.getInstance().adsClosed(mRewardVideoAd.mCodeId, AppMacros.AT_RewardVideo,"");
 
+                cleanData(mRewardVideoAd.mCodeId);
                 loadAd();
             }
 
@@ -209,19 +304,19 @@ public class RewardVideoADActivity {
             public void onRewardVerify(boolean rewardVerify, int rewardAmount, String rewardName) {
 //                TToast.show(mContext, "verify:" + rewardVerify + " amount:" + rewardAmount +  " name:" + rewardName);
                 Log.e(TAG, "verify:" + rewardVerify + " amount:" + rewardAmount +  " name:" + rewardName);
-                LgSdkService.getInstance().adsVideoComplete(mCodeId, AppMacros.AT_RewardVideo,"");
+                LgSdkService.getInstance().adsVideoComplete(mRewardVideoAd.mCodeId, AppMacros.AT_RewardVideo,"");
             }
 
             @Override
             public void onSkippedVideo() {
 //                TToast.show(mContext, "onSkippedVideo");
                 Log.e(TAG, "onSkippedVideo");
-                LgSdkService.getInstance().adsSkippedVideo(mCodeId, AppMacros.AT_RewardVideo,"");
+                LgSdkService.getInstance().adsSkippedVideo(mRewardVideoAd.mCodeId, AppMacros.AT_RewardVideo,"");
             }
         });
 
         // 设置下载回调，接入方可选择是否设置
-        mRewardVideoAd.setDownloadCallback(new LGAppDownloadCallback() {
+        mRewardVideoAd.mRewardVideoAd.setDownloadCallback(new LGAppDownloadCallback() {
             @Override
             public void onIdle() {
                 mHasShowDownloadActive = false;
@@ -266,9 +361,13 @@ public class RewardVideoADActivity {
 //        rewardVideoAd.showRewardVideoAd(RewardVideoADActivity.this);
 
         //step5  展示广告，并传入广告展示的场景
-        mRewardVideoAd.showRewardVideoAd(mContext, TTAdConstant.RitScenes.CUSTOMIZE_SCENES, "scenes_test");
-        mRewardVideoAdList.remove(mRewardVideoAd);
-        mRewardVideoAd = null;
+        mRewardVideoAd.mRewardVideoAd.showRewardVideoAd(mContext, TTAdConstant.RitScenes.CUSTOMIZE_SCENES, "scenes_test");
+//        mRewardVideoAdList.remove(mRewardVideoAd);
+
+        RewardAd tRewarAd = mRewardVideoAdList.get(mRewardVideoAd.mCodeId);
+        tRewarAd.mRewardVideoAd = null;
+
+//        mRewardVideoAd = null;
 
     }
 }

@@ -68,6 +68,7 @@ public class FullScreenVideoADActivity {
      * @param orientation 展示的广告反向
      */
     private void loadAd(String codeId, int orientation) {
+        if(lgAdManager == null) return;
         //step3:创建广告请求参数LGFullScreenVideoAdDTO
         LGFullScreenVideoAdDTO fullScreenVideoDTO = new LGFullScreenVideoAdDTO();
         // Context
