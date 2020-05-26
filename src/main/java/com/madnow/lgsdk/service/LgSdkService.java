@@ -81,7 +81,7 @@ public class LgSdkService extends AdInterface {
     private void initConfig(final String aid,final String channel,final String appName){
         LGConfig lgConfig = new LGConfig.Builder()
                 .appID(aid)
-                .loginMode(LGConfig.LoginMode.LOGIN_SILENT)//初始化前确认游戏登录模式 静默登录或者弹框登录
+                .loginMode(LGConfig.LoginMode.LOGIN_NORMAL)//初始化前确认游戏登录模式 静默登录或者弹框登录
                 .mChannel(channel)
                 .showFailToast(false)//当静默登录方式登录失败时候 是否由SDK弹出toast提示
                 .appName(appName)
