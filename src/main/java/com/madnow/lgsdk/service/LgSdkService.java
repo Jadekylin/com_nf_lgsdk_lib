@@ -14,12 +14,13 @@ import com.ss.union.gamecommon.LGConfig;
 import com.wogame.cinterface.AdInterface;
 import com.wogame.cinterface.TeaInterface;
 import com.wogame.common.AppMacros;
+import com.wogame.util.GMDebug;
 
 import org.json.JSONObject;
 
 public class LgSdkService extends AdInterface {
 
-    private static final String TAG = "LgSdkService";
+    public static boolean mIsInitSdk = false;
 
     private static LgSdkService mService = null;
     private Activity mActivity;
@@ -79,6 +80,9 @@ public class LgSdkService extends AdInterface {
     }
 
     private void initConfig(final String aid,final String channel,final String appName){
+
+        GMDebug.LogD("initConfig: ");
+        
         LGConfig lgConfig = new LGConfig.Builder()
                 .appID(aid)
                 .loginMode(LGConfig.LoginMode.LOGIN_NORMAL)//初始化前确认游戏登录模式 静默登录或者弹框登录
@@ -93,7 +97,7 @@ public class LgSdkService extends AdInterface {
         // 申请部分权限,建议在sdk初始化前申请,如：READ_PHONE_STATE、ACCESS_COARSE_LOCATION及ACCESS_FINE_LOCATION权限，
         // 以获取更好的广告推荐效果，如read_phone_state,防止获取不了imei时候，下载类广告没有填充的问题。
         LGSDK.requestPermissionIfNecessary(mActivity);
-
+        mIsInitSdk = true;
         //防成迷
 //        LGSDK.getRealNameManager().setAntiAddictionGlobalCallback(new LGAntiAddictionGlobalCallback() {
 //            @Override
@@ -117,7 +121,7 @@ public class LgSdkService extends AdInterface {
      * @param adsType
      */
     public void adsLoaded(String codeId, int adsType) {
-        Log.d(TAG, "MainActivity adsType:" + adsType + " 加载成功");
+        GMDebug.LogD( "MainActivity adsType:" + adsType + " 加载成功");
         isLoaded[adsType] = true;
         if (mCallBack != null) {
             mCallBack.onAdStatusListen(adsType, AppMacros.CALL_AD_LOADED, nPlaceId,codeId,"","");
@@ -125,21 +129,21 @@ public class LgSdkService extends AdInterface {
     }
 
     public void adsShown(String codeId, int adsType) {
-        Log.d(TAG, "MainActivity adsType:" + adsType + " 展示成功");
+        GMDebug.LogD( "MainActivity adsType:" + adsType + " 展示成功");
         if (mCallBack != null) {
             mCallBack.onAdStatusListen(adsType, AppMacros.CALL_AD_SHOW, nPlaceId,codeId,"","");
         }
     }
 
     public void adsClicked(String codeId, int adsType) {
-        Log.d(TAG, "MainActivity adsType:" + adsType + " 点击成功");
+        GMDebug.LogD( "MainActivity adsType:" + adsType + " 点击成功");
         if (mCallBack != null) {
             mCallBack.onAdStatusListen(adsType, AppMacros.CALL_AD_CLICK, nPlaceId,codeId,"","");
         }
     }
 
     public void adsClosed(String codeId, int adsType, String extraJson) {
-        Log.d(TAG, "MainActivity adsType:" + adsType + " 关闭成功");
+        GMDebug.LogD("MainActivity adsType:" + adsType + " 关闭成功");
         isLoaded[adsType] = false;
         if (adsType == AppMacros.AT_RewardVideo) {
             if (mVideoCompleteStatus == 1) {
@@ -171,14 +175,14 @@ public class LgSdkService extends AdInterface {
     }
 
     public void adsVideoComplete(String codeId, int adsType, String extraJson) {
-        Log.d(TAG, "MainActivity adsType:" + adsType + " 奖励");
+        GMDebug.LogD( "MainActivity adsType:" + adsType + " 奖励");
         if (adsType == AppMacros.AT_RewardVideo) {
             mVideoCompleteStatus = 1;
         }
     }
 
     public void adsSkippedVideo(String codeId, int adsType, String extraJson) {
-        Log.d(TAG, "MainActivity adsType:" + adsType + " 奖励");
+        GMDebug.LogD( "MainActivity adsType:" + adsType + " 奖励");
         if (adsType == AppMacros.AT_RewardVideo) {
             mIsSkipped = true;
         }
@@ -193,9 +197,12 @@ public class LgSdkService extends AdInterface {
 
     //region 外部广告调用接口
     public void showAd(final int type, final String placeId, final int x, final int y) {
-        Log.d(TAG, "showVideo:" + type + " placeId:" + placeId);
+        GMDebug.LogD("showVideo:" + type + " placeId:" + placeId);
         nPlaceId = placeId;
-
+        if(mActivity == null){
+            GMDebug.LogD("not init");
+            return;
+        }
         if ( type == AppMacros.AT_RewardVideo) {
             if(mRewardVideoAd.isLoaded()) {
                 mRewardVideoAd.showAd();
@@ -220,7 +227,7 @@ public class LgSdkService extends AdInterface {
     }
 
     public void closeAd(final int type) {
-        Log.d(TAG, "closeAd:" + type);
+        GMDebug.LogD("closeAd:" + type);
         if (type == AppMacros.AT_Banner_Bottom) {
 //            HippoAdSdk.hideBanner();
         } else if (type == AppMacros.AT_Native) {

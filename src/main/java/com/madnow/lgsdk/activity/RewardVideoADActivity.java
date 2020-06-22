@@ -17,6 +17,7 @@ import com.ss.union.sdk.ad.dto.LGBaseConfigAdDTO;
 import com.ss.union.sdk.ad.dto.LGRewardVideoAdDTO;
 import com.ss.union.sdk.ad.type.LGRewardVideoAd;
 import com.wogame.common.AppMacros;
+import com.wogame.util.GMDebug;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,8 +47,6 @@ class RewardAd{
  */
 
 public class RewardVideoADActivity {
-
-    public static final String TAG = "RewardVideoAD";
     // 广告ID，仅demo 使用，接入方请申请自己的广告ID
     public static final String SAMPLE_HORIZONTAL_CODE_ID = "901121430";
     // 广告ID，仅demo 使用，接入方请申请自己的广告ID
@@ -89,11 +88,11 @@ public class RewardVideoADActivity {
         rewardAd1.mStatus = 0;
         mRewardVideoAdList.put(codeId,rewardAd1);
 
-        RewardAd rewardAd2 = new RewardAd();
-        rewardAd2.mCodeId = codeId2;
-        rewardAd2.mIsFailure = false;
-        rewardAd2.mStatus = 0;
-        mRewardVideoAdList.put(codeId2,rewardAd2);
+//        RewardAd rewardAd2 = new RewardAd();
+//        rewardAd2.mCodeId = codeId2;
+//        rewardAd2.mIsFailure = false;
+//        rewardAd2.mStatus = 0;
+//        mRewardVideoAdList.put(codeId2,rewardAd2);
 
         loadAd();
     }
@@ -135,7 +134,7 @@ public class RewardVideoADActivity {
             @Override
             public void onError(int code, String message) {
 //                TToast.show(mContext, message);
-                Log.e(TAG, "code:" + code + ",message:" + message);
+                GMDebug.LogD("code:" + code + ",message:" + message);
 
                 RewardAd rewardAd = mRewardVideoAdList.get(rewardVideoADDTO.codeID);
                 rewardAd.mStatus = 3;
@@ -155,7 +154,7 @@ public class RewardVideoADActivity {
 
             @Override
             public void onRewardVideoAdLoad(LGRewardVideoAd ad) {
-                Log.e(TAG, "onRewardVideoAdLoad");
+                GMDebug.LogD("onRewardVideoAdLoad");
 //                mRewardVideoAd = ad;
 
                 RewardAd rewardAd = mRewardVideoAdList.get(rewardVideoADDTO.codeID);
@@ -219,7 +218,7 @@ public class RewardVideoADActivity {
         mRewardVideoAd = null;
 
         RewardAd rewardAd = mRewardVideoAdList.get(mCodeList.get(0));
-        RewardAd rewardAd1 = mRewardVideoAdList.get(mCodeList.get(1));
+        RewardAd rewardAd1 = null;// = mRewardVideoAdList.get(mCodeList.get(1));
 
         if(rewardAd != null && rewardAd.mRewardVideoAd != null && rewardAd1 != null && rewardAd1.mRewardVideoAd != null){
             if( rewardAd.mShowCount <= rewardAd1.mShowCount){
@@ -249,7 +248,7 @@ public class RewardVideoADActivity {
              */
             public void onAdShow() {
 //                TToast.show(mContext, "rewardVideoAd show");
-                Log.e(TAG, "rewardVideoAd show");
+                GMDebug.LogD("rewardVideoAd show");
                 LgSdkService.getInstance().adsShown(mRewardVideoAd.mCodeId, AppMacros.AT_RewardVideo);
             }
 
@@ -259,7 +258,7 @@ public class RewardVideoADActivity {
              */
             public void onAdVideoBarClick() {
 //                TToast.show(mContext, "rewardVideoAd bar click");
-                Log.e(TAG, "rewardVideoAd bar click");
+                GMDebug.LogD( "rewardVideoAd bar click");
                 LgSdkService.getInstance().adsClicked(mRewardVideoAd.mCodeId, AppMacros.AT_RewardVideo);
             }
 
@@ -269,7 +268,7 @@ public class RewardVideoADActivity {
              */
             public void onAdClose() {
 //                TToast.show(mContext, "rewardVideoAd close");
-                Log.e(TAG, "rewardVideoAd close");
+                GMDebug.LogD("rewardVideoAd close");
                 LgSdkService.getInstance().adsClosed(mRewardVideoAd.mCodeId, AppMacros.AT_RewardVideo,"");
 
                 cleanData(mRewardVideoAd.mCodeId);
@@ -283,13 +282,13 @@ public class RewardVideoADActivity {
              */
             public void onVideoComplete() {
 //                TToast.show(mContext, "rewardVideoAd complete");
-                Log.e(TAG, "rewardVideoAd complete");
+                GMDebug.LogD("rewardVideoAd complete");
             }
 
             @Override
             public void onVideoError() {
 //                TToast.show(mContext, "rewardVideoAd error");
-                Log.e(TAG, "rewardVideoAd error");
+                GMDebug.LogD("rewardVideoAd error");
             }
 
             /**
@@ -303,14 +302,14 @@ public class RewardVideoADActivity {
             @Override
             public void onRewardVerify(boolean rewardVerify, int rewardAmount, String rewardName) {
 //                TToast.show(mContext, "verify:" + rewardVerify + " amount:" + rewardAmount +  " name:" + rewardName);
-                Log.e(TAG, "verify:" + rewardVerify + " amount:" + rewardAmount +  " name:" + rewardName);
+                GMDebug.LogD( "verify:" + rewardVerify + " amount:" + rewardAmount +  " name:" + rewardName);
                 LgSdkService.getInstance().adsVideoComplete(mRewardVideoAd.mCodeId, AppMacros.AT_RewardVideo,"");
             }
 
             @Override
             public void onSkippedVideo() {
 //                TToast.show(mContext, "onSkippedVideo");
-                Log.e(TAG, "onSkippedVideo");
+                GMDebug.LogD("onSkippedVideo");
                 LgSdkService.getInstance().adsSkippedVideo(mRewardVideoAd.mCodeId, AppMacros.AT_RewardVideo,"");
             }
         });
@@ -320,7 +319,7 @@ public class RewardVideoADActivity {
             @Override
             public void onIdle() {
                 mHasShowDownloadActive = false;
-                Log.e(TAG, "onIdle");
+                GMDebug.LogD("onIdle");
             }
 
             @Override
@@ -328,32 +327,32 @@ public class RewardVideoADActivity {
                 if (!mHasShowDownloadActive) {
                     mHasShowDownloadActive = true;
 //                    TToast.show(mContext, "下载中，点击下载区域暂停", Toast.LENGTH_LONG);
-                    Log.e(TAG, "onDownloadActive");
+                    GMDebug.LogD("onDownloadActive");
                 }
             }
 
             @Override
             public void onDownloadPaused(long totalBytes, long currBytes, String fileName, String appName) {
 //                TToast.show(mContext, "下载暂停，点击下载区域继续", Toast.LENGTH_LONG);
-                Log.e(TAG, "onDownloadPaused");
+                GMDebug.LogD( "onDownloadPaused");
             }
 
             @Override
             public void onDownloadFailed(long totalBytes, long currBytes, String fileName, String appName) {
 //                TToast.show(mContext, "下载失败，点击下载区域重新下载", Toast.LENGTH_LONG);
-                Log.e(TAG, "onDownloadFailed");
+                GMDebug.LogD("onDownloadFailed");
             }
 
             @Override
             public void onDownloadFinished(long totalBytes, String fileName, String appName) {
 //                TToast.show(mContext, "下载完成，点击下载区域重新下载", Toast.LENGTH_LONG);
-                Log.e(TAG, "onDownloadFinished");
+                GMDebug.LogD("onDownloadFinished");
             }
 
             @Override
             public void onInstalled(String fileName, String appName) {
 //                TToast.show(mContext, "安装完成，点击下载区域打开", Toast.LENGTH_LONG);
-                Log.e(TAG, "onInstalled");
+                GMDebug.LogD( "onInstalled");
             }
         });
 

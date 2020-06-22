@@ -19,6 +19,7 @@ import com.ss.union.sdk.ad.dto.LGBaseConfigAdDTO;
 import com.ss.union.sdk.ad.dto.LGFullScreenVideoAdDTO;
 import com.ss.union.sdk.ad.type.LGFullScreenVideoAd;
 import com.wogame.common.AppMacros;
+import com.wogame.util.GMDebug;
 
 /**
  * 全屏视频广告接入示例
@@ -28,8 +29,6 @@ import com.wogame.common.AppMacros;
  */
 
 public class FullScreenVideoADActivity {
-
-    public static final String TAG = "full_screen_video_ad";
     // 广告ID，仅demo 使用，接入方请申请自己的广告ID
     public static final String SAMPLE_CODE_ID_VERTICAL = "901121375";
 
@@ -85,7 +84,7 @@ public class FullScreenVideoADActivity {
         lgAdManager.loadFullScreenVideoAd(fullScreenVideoDTO, new LGAdManager.FullScreenVideoAdListener() {
             @Override
             public void onError(int code, String message) {
-                Log.e(TAG, "onError: code:" + code + ",message:" + message);
+                GMDebug.LogE("onError: code:" + code + ",message:" + message);
 //                TToast.show(mContext, message);
                 LgSdkService.getInstance().adsError(mCodeId, AppMacros.AT_FullScreenVideo,code,message);
                 new Handler().postDelayed(new Runnable() {
@@ -98,7 +97,7 @@ public class FullScreenVideoADActivity {
 
             @Override
             public void onFullScreenVideoAdLoad(LGFullScreenVideoAd LGFullScreenVideoAd) {
-                Log.e(TAG, "onFullScreenVideoAdLoad");
+                GMDebug.LogD( "onFullScreenVideoAdLoad");
 //                TToast.show(mContext,"FullVideoAd loaded");
                 fullScreenVideoAd = LGFullScreenVideoAd;
                 LgSdkService.getInstance().adsLoaded(mCodeId, AppMacros.AT_FullScreenVideo);
@@ -119,21 +118,21 @@ public class FullScreenVideoADActivity {
         fullScreenVideoAd.setInteractionCallback(new LGFullScreenVideoAd.InteractionCallback() {
             @Override
             public void onAdShow() {
-                Log.e(TAG, "FullVideoAd show");
+                GMDebug.LogD("FullVideoAd show");
 //                TToast.show(mContext, "FullVideoAd show");
                 LgSdkService.getInstance().adsShown(mCodeId, AppMacros.AT_FullScreenVideo);
             }
 
             @Override
             public void onAdVideoBarClick() {
-                Log.e(TAG, "FullVideoAd bar click");
+                GMDebug.LogD("FullVideoAd bar click");
 //                TToast.show(mContext, "FullVideoAd bar click");
                 LgSdkService.getInstance().adsClicked(mCodeId, AppMacros.AT_FullScreenVideo);
             }
 
             @Override
             public void onAdClose() {
-                Log.e(TAG, "FullVideoAd close");
+                GMDebug.LogD("FullVideoAd close");
 //                TToast.show(mContext, "FullVideoAd close");
                 LgSdkService.getInstance().adsClosed(mCodeId, AppMacros.AT_FullScreenVideo,"");
 
@@ -142,13 +141,13 @@ public class FullScreenVideoADActivity {
 
             @Override
             public void onVideoComplete() {
-                Log.e(TAG, "FullVideoAd complete");
+                GMDebug.LogD("FullVideoAd complete");
 //                TToast.show(mContext, "FullVideoAd complete");
             }
 
             @Override
             public void onSkippedVideo() {
-                Log.e(TAG, "FullVideoAd skipped");
+                GMDebug.LogD("FullVideoAd skipped");
 //                TToast.show(mContext, "FullVideoAd skipped");
             }
         });
@@ -157,7 +156,7 @@ public class FullScreenVideoADActivity {
         fullScreenVideoAd.setDownloadCallback(new LGAppDownloadCallback() {
             @Override
             public void onIdle() {
-                Log.e(TAG, "onIdle");
+                GMDebug.LogD("onIdle");
                 mHasShowDownloadActive = false;
             }
 
@@ -165,32 +164,32 @@ public class FullScreenVideoADActivity {
             public void onDownloadActive(long totalBytes, long currBytes, String fileName, String appName) {
                 if (!mHasShowDownloadActive) {
                     mHasShowDownloadActive = true;
-                    Log.e(TAG, "onDownloadActive");
+                    GMDebug.LogD("onDownloadActive");
 //                    TToast.show(mContext, "下载中，点击下载区域暂停", Toast.LENGTH_LONG);
                 }
             }
 
             @Override
             public void onDownloadPaused(long totalBytes, long currBytes, String fileName, String appName) {
-                Log.e(TAG, "onDownloadPaused");
+                GMDebug.LogD("onDownloadPaused");
 //                TToast.show(mContext, "下载暂停，点击下载区域继续", Toast.LENGTH_LONG);
             }
 
             @Override
             public void onDownloadFailed(long totalBytes, long currBytes, String fileName, String appName) {
-                Log.e(TAG, "onDownloadFailed");
+                GMDebug.LogD("onDownloadFailed");
 //                TToast.show(mContext, "下载失败，点击下载区域重新下载", Toast.LENGTH_LONG);
             }
 
             @Override
             public void onDownloadFinished(long totalBytes, String fileName, String appName) {
-                Log.e(TAG, "onDownloadFinished" + ",filename:" + fileName + ",appName:" + appName);
+                GMDebug.LogD("onDownloadFinished" + ",filename:" + fileName + ",appName:" + appName);
 //                TToast.show(mContext, "下载完成，点击下载区域重新下载", Toast.LENGTH_LONG);
             }
 
             @Override
             public void onInstalled(String fileName, String appName) {
-                Log.e(TAG, "onInstalled" + ",filename:" + fileName + ",appName:" + appName);
+                GMDebug.LogD("onInstalled" + ",filename:" + fileName + ",appName:" + appName);
 //                TToast.show(mContext, "安装完成，点击下载区域打开", Toast.LENGTH_LONG);
             }
         });
