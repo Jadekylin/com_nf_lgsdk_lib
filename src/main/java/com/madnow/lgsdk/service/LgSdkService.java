@@ -11,6 +11,7 @@ import com.madnow.lgsdk.activity.FullScreenVideoADActivity;
 import com.madnow.lgsdk.activity.RewardVideoADActivity;
 import com.ss.union.game.sdk.LGSDK;
 import com.ss.union.gamecommon.LGConfig;
+import com.ss.union.gamecommon.LGOneKeyLoginConfig;
 import com.wogame.cinterface.AdInterface;
 import com.wogame.cinterface.TeaInterface;
 import com.wogame.common.AppMacros;
@@ -89,6 +90,11 @@ public class LgSdkService extends AdInterface {
                 .showFailToast(false)//当静默登录方式登录失败时候 是否由SDK弹出toast提示
                 .appName(appName)
 //                .abTestVersion("123,111")//该配置为 optional 如果申请了AB测试 那么可以配置，否则可以忽略
+                .oneKeyLogin(new LGOneKeyLoginConfig()
+                        .setCMSetting("", "") // 移动配置信息
+                        .setCUSetting("", "") // 联通配置信息
+                        // 电信配置信息（CT_APP_KEY对于在天翼账号平台申请的应用ID, CT_APP_SECRET对于申请的应用密钥）
+                        .setCTSetting("", ""))
 //                .debug(true)//只为调试使用 release的时候 请删除该配置
                 .build();
 

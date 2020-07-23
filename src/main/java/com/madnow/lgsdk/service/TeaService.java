@@ -25,6 +25,7 @@ public class TeaService extends TeaInterface {
 
     private static TeaService mService = null;
     private StringBuilder mBuilder;
+    private Activity mActivity;
 
     public static TeaService getInstance() {
         if (mService == null) {
@@ -54,8 +55,9 @@ public class TeaService extends TeaInterface {
         if(!LgSdkService.mIsInitSdk){
             GMDebug.LogE( "login: is not init sdk");
         }
+        mActivity = activity;
         if(LGSDK.isVisitor()){
-            LGSDK.switchAccount(activity,new LGSwitchAccountCallback(){
+            LGSDK.switchAccount(mActivity,new LGSwitchAccountCallback(){
                 @Override
                 public void onSuccess(User user) {
                     mBuilder = new StringBuilder();
@@ -90,41 +92,46 @@ public class TeaService extends TeaInterface {
             });
         }
         else {
-            LGSDK.loginNormal(activity, new LGLoginCallback() {
-                @Override
-                public void onSuccess(User user) {
-                    //Log.e(TAG, "gameLogin() onSuccess :" + user.nick_name + ",token:" + user.token);
-                    mBuilder = new StringBuilder();
-                    mBuilder.append("{");
-                    if(user.nick_name != null){
-                        mBuilder.append("\"name\":"+"\""+user.nick_name+"\"");
-                        mBuilder.append(",");
-                    }
-                    if(user.open_id != null){
-                        mBuilder.append("\"openid\":"+"\""+user.open_id+"\"");
-                        mBuilder.append(",");
-                    }
-                    if(user.avatar != null){
-                        mBuilder.append("\"iconurl\":"+"\""+user.avatar+"\"");
-                        mBuilder.append(",");
-                    }
-                    mBuilder.deleteCharAt(mBuilder.length()-1);
-                    mBuilder.append("}");
+            try {
+                LGSDK.loginNormal(mActivity, new LGLoginCallback() {
+                    @Override
+                    public void onSuccess(User user) {
+                        //Log.e(TAG, "gameLogin() onSuccess :" + user.nick_name + ",token:" + user.token);
+                        mBuilder = new StringBuilder();
+                        mBuilder.append("{");
+                        if(user.nick_name != null){
+                            mBuilder.append("\"name\":"+"\""+user.nick_name+"\"");
+                            mBuilder.append(",");
+                        }
+                        if(user.open_id != null){
+                            mBuilder.append("\"openid\":"+"\""+user.open_id+"\"");
+                            mBuilder.append(",");
+                        }
+                        if(user.avatar != null){
+                            mBuilder.append("\"iconurl\":"+"\""+user.avatar+"\"");
+                            mBuilder.append(",");
+                        }
+                        mBuilder.deleteCharAt(mBuilder.length()-1);
+                        mBuilder.append("}");
 //                    GMDebug.Log(mBuilder.toString());
 
-                    if(callBack != null){
-                        callBack.onCallBack(1, AppMacros.CALL_SUCCESS, mBuilder.toString());
+                        if(callBack != null){
+                            callBack.onCallBack(1, AppMacros.CALL_SUCCESS, mBuilder.toString());
+                        }
                     }
-                }
 
-                @Override
-                public void onFail(LGException e) {
-                    Log.e(TAG, "gameLogin() onFail: errorCode =" + e.getError_code() + " errorMsg =" + e.getError_msg());
-                    if(callBack != null){
-                        callBack.onCallBack(1, AppMacros.CALL_FALIED,"");
+                    @Override
+                    public void onFail(LGException e) {
+                        Log.e(TAG, "gameLogin() onFail: errorCode =" + e.getError_code() + " errorMsg =" + e.getError_msg());
+                        if(callBack != null){
+                            callBack.onCallBack(1, AppMacros.CALL_FALIED,"");
+                        }
                     }
-                }
-            });
+                });
+            }
+            catch (Exception e){
+                GMDebug.LogE(e.getMessage());
+            }
         }
 
 
