@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.bytedance.applog.AppLog;
 import com.madnow.lgsdk.activity.FullScreenVideoADActivity;
+import com.madnow.lgsdk.activity.NativeBannerADActivity;
 import com.madnow.lgsdk.activity.RewardVideoADActivity;
 import com.ss.union.game.sdk.LGSDK;
 import com.ss.union.gamecommon.LGConfig;
@@ -32,8 +33,11 @@ public class LgSdkService extends AdInterface {
     private String mFullScreenId;
     private String mRewardId;
     private String mRewardId2;
+    private String mBannerId;
     private RewardVideoADActivity mRewardVideoAd;
     private FullScreenVideoADActivity mFullScreenVideoAd;
+    private NativeBannerADActivity mNativeBannerAd;
+
     private boolean[] isLoaded;
 
     public static LgSdkService getInstance() {
@@ -55,6 +59,7 @@ public class LgSdkService extends AdInterface {
         mRewardId = rewardId;
         mRewardId2 = rewardId2;
         mFullScreenId = fullScreenId;
+        mBannerId = bannerId;
         initConfig(app, aid, channel, appName);
     }
 
@@ -67,6 +72,11 @@ public class LgSdkService extends AdInterface {
         mRewardVideoAd.initActivity(mActivity);
         mFullScreenVideoAd = new FullScreenVideoADActivity();
 
+        if (!mBannerId.isEmpty()) {
+            mNativeBannerAd = new NativeBannerADActivity();
+            mNativeBannerAd.initActivity(mActivity);
+        }
+
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -78,6 +88,8 @@ public class LgSdkService extends AdInterface {
     private void loadAdData() {
         mRewardVideoAd.init(mRewardId, mRewardId2);
         mFullScreenVideoAd.init(mActivity, mFullScreenId);
+
+        if (mNativeBannerAd != null) mNativeBannerAd.init(mBannerId);
     }
 
     private void initConfig(Application app, final String aid, final String channel, final String appName) {
@@ -161,11 +173,10 @@ public class LgSdkService extends AdInterface {
                 if (mCallBack != null) {
                     if (mIsSkipped) {
                         mCallBack.onCallBack(AppMacros.AT_RewardVideo, AppMacros.CALL_FALIED, nPlaceId, codeId, "", "");
-                        mCallBack.onAdStatusListen(AppMacros.AT_RewardVideo, AppMacros.CALL_FALIED, nPlaceId, codeId, "", "");
                     } else {
                         mCallBack.onCallBack(AppMacros.AT_RewardVideo, AppMacros.CALL_CANCEL, nPlaceId, codeId, "", "");
-                        mCallBack.onAdStatusListen(AppMacros.AT_RewardVideo, AppMacros.CALL_FALIED, nPlaceId, codeId, "", "");
                     }
+                    mCallBack.onAdStatusListen(AppMacros.AT_RewardVideo, AppMacros.CALL_FALIED, nPlaceId, codeId, "", "");
                 }
             }
             mIsSkipped = false;
@@ -225,6 +236,10 @@ public class LgSdkService extends AdInterface {
                     mCallBack.onCallBack(type, AppMacros.CALL_FALIED, nPlaceId, "", "", "");
                 }
             }
+        } else if (type == AppMacros.AT_Banner_Bottom) {
+            if (mNativeBannerAd != null) {
+                mNativeBannerAd.showAd();
+            }
         }
 
     }
@@ -233,6 +248,9 @@ public class LgSdkService extends AdInterface {
         GMDebug.LogD("closeAd:" + type);
         if (type == AppMacros.AT_Banner_Bottom) {
 //            HippoAdSdk.hideBanner();
+            if (mNativeBannerAd != null) {
+                mNativeBannerAd.hideAd();
+            }
         } else if (type == AppMacros.AT_Native) {
             //隐藏信息流广告
 //            HippoAdSdk.hideNativeExpressAd();

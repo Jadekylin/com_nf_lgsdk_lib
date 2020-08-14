@@ -1,11 +1,10 @@
-package com.ss.union.GameSdkDemo.activity;
+package com.madnow.lgsdk.activity;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
-import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,13 +12,14 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.ss.union.GameSdkDemo.BaseActivity;
-import com.ss.union.GameSdkDemo.R;
-import com.ss.union.GameSdkDemo.utils.TToast;
+import com.madnow.lgsdk.R;
+import com.madnow.lgsdk.service.LgSdkService;
+import com.madnow.lgsdk.utils.TToast;
 import com.ss.union.game.sdk.LGSDK;
 import com.ss.union.sdk.ad.LGAdManager;
 import com.ss.union.sdk.ad.bean.LGImage;
@@ -29,74 +29,73 @@ import com.ss.union.sdk.ad.dto.LGNativeBannerAdDTO;
 import com.ss.union.sdk.ad.type.LGBaseAd;
 import com.ss.union.sdk.ad.type.LGNativeAd;
 import com.ss.union.sdk.ad.views.LGAdDislike;
+import com.wogame.common.AppMacros;
+import com.wogame.util.GMDebug;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("EmptyMethod")
-public class NativeBannerADActivity extends BaseActivity {
+public class NativeBannerADActivity {
     public static final String TAG = "native_banner";
     // 广告ID，仅demo 使用，接入方请申请自己的广告ID
-    public static final String SAMPLE_CODE_ID = "901121423";
+    public static final String SAMPLE_CODE_ID = "945391063";
     private FrameLayout mBannerContainer;
-    private Context mContext;
     private Button mLoadBannerAdBtn;
     private Button mButtonLandingPage;
     private Button mCreativeButton;
 
     private LGAdManager mLGADManager;
+    private LGNativeAd mNativeAd;
     int width;
     int height;
 
-    @SuppressLint("SetTextI18n")
-    @SuppressWarnings("RedundantCast")
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+    private Activity mContext;
+    private String mCodeId;
+    private View mViewRoot;
+    private int mImageWidth = 500;
+    private int mImageHeight = 240;
 
-        setContentView(R.layout.activity_banner);
-        WindowManager manager = this.getWindowManager();
+    public void initActivity(Context activity) {
+
+        mContext = (Activity) activity;
+
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+        params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+        @SuppressLint("WrongViewCast") LinearLayout fragment_bannerAd = (LinearLayout) mContext.findViewById(R.id.ad_banner_bottom);
+        LayoutInflater inflater = LayoutInflater.from(mContext);
+        mViewRoot = inflater.inflate(R.layout.activity_banner, fragment_bannerAd, false);
+
+        mContext.addContentView(mViewRoot, params);
+
+
+        WindowManager manager = mContext.getWindowManager();
+
         DisplayMetrics outMetrics = new DisplayMetrics();
         manager.getDefaultDisplay().getMetrics(outMetrics);
         width = outMetrics.widthPixels;
         height = outMetrics.heightPixels;
-        mContext = this.getApplicationContext();
-        mBannerContainer = (FrameLayout) findViewById(R.id.banner_container);
-        mLoadBannerAdBtn = (Button) findViewById(R.id.btn_banner_download);
-        mLoadBannerAdBtn.setText("展示原生BANNER广告");
-        mLoadBannerAdBtn.setOnClickListener(mClickListener);
-        mButtonLandingPage = (Button) findViewById(R.id.btn_banner_landingpage);
-        mButtonLandingPage.setVisibility(View.GONE);
 
+
+//        mContext = this.getApplicationContext();
+        mBannerContainer = (FrameLayout) mViewRoot.findViewById(R.id.ad_banner_bottom);
+//        mLoadBannerAdBtn = (Button) findViewById(R.id.btn_banner_download);
+//        mLoadBannerAdBtn.setText("展示原生BANNER广告");
+//        mLoadBannerAdBtn.setOnClickListener(mClickListener);
+//        mButtonLandingPage = (Button) findViewById(R.id.btn_banner_landingpage);
+//        mButtonLandingPage.setVisibility(View.GONE);
+
+
+    }
+
+    public void init(final String codeId) {
         // step1:LGADManager 广告管理类初始化
         mLGADManager = LGSDK.getAdManager();
         // step2:(可选，强烈建议在合适的时机调用):申请部分权限，如read_phone_state,防止获取不了imei时候，下载类广告没有填充的问题。
-        LGSDK.requestPermissionIfNecessary(this);
+        //LGSDK.requestPermissionIfNecessary(mContext);
+        mCodeId = codeId;
+        loadBannerAd(codeId);
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mCreativeButton != null) {
-            mCreativeButton = null;
-        }
-    }
-
-    private final View.OnClickListener mClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            if (v.getId() == R.id.btn_banner_download) {
-                loadBannerAd(SAMPLE_CODE_ID);
-            }
-        }
-    };
 
     /**
      * 加载广告
@@ -107,17 +106,18 @@ public class NativeBannerADActivity extends BaseActivity {
         //step3:创建广告请求参数LGNativeBannerAdDTO
         LGNativeBannerAdDTO bannerADDTO = new LGNativeBannerAdDTO();
         // context
-        bannerADDTO.context = this;
+        bannerADDTO.context = mContext;
         // 广告ID
         bannerADDTO.codeID = codeId;
         bannerADDTO.requestAdCount = 1;
         // 设置期望的展示图片的大小
-        bannerADDTO.expectedImageSize = new LGBaseConfigAdDTO.ExpectedImageSize(600, 257);
+        bannerADDTO.expectedImageSize = new LGBaseConfigAdDTO.ExpectedImageSize(mImageWidth, mImageHeight);
         //step4:请求广告，对请求回调的广告作渲染处理
         mLGADManager.loadNativeAd(bannerADDTO, new LGAdManager.NativeAdListener() {
             @Override
             public void onError(int code, String message) {
-                Log.d(TAG, "onError: code:" + code + ",message:" + message);
+                LgSdkService.getInstance().adsError(mCodeId, AppMacros.AT_Banner_Bottom,code,message);
+                GMDebug.LogD("onError: code:" + code + ",message:" + message);
             }
 
             @Override
@@ -125,7 +125,8 @@ public class NativeBannerADActivity extends BaseActivity {
                 if (ads.get(0) == null) {
                     return;
                 }
-                showAd(ads.get(0));
+                LgSdkService.getInstance().adsLoaded(mCodeId, AppMacros.AT_Banner_Bottom);
+                mNativeAd = ads.get(0);
             }
         });
     }
@@ -133,8 +134,8 @@ public class NativeBannerADActivity extends BaseActivity {
     /**
      * 展示广告
      */
-    private void showAd(LGNativeAd nativeAd) {
-        View bannerView = LayoutInflater.from(mContext).inflate(R.layout.native_ad, mBannerContainer, false);
+    public void showAd() {
+        View bannerView = LayoutInflater.from(mContext).inflate(R.layout.banner_native_ad, mBannerContainer, false);
         if (bannerView == null) {
             return;
         }
@@ -145,9 +146,15 @@ public class NativeBannerADActivity extends BaseActivity {
         //step5:addview 展示广告
         mBannerContainer.removeAllViews();
         mBannerContainer.addView(bannerView);
-        //绑定原生广告的数据
-        setAdData(bannerView, nativeAd);
 
+        LgSdkService.getInstance().adsShown(mCodeId, AppMacros.AT_Banner_Bottom);
+        //绑定原生广告的数据
+        setAdData(bannerView, mNativeAd);
+    }
+
+    public void hideAd() {
+        LgSdkService.getInstance().adsClosed(mCodeId, AppMacros.AT_Banner_Bottom,"");
+        if (mBannerContainer != null) mBannerContainer.removeAllViews();
     }
 
     @SuppressWarnings("RedundantCast")
@@ -164,20 +171,21 @@ public class NativeBannerADActivity extends BaseActivity {
                   此只为DEMO显示 CP接入过程需要根据自己的尺寸大小进行配置
                   目前DEMO尺寸为 width 填充屏幕  height是屏幕的1/4
                  */
-                Glide.with(this).load(image.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.NONE).override(width, height / 4).into(im);
+//                Glide.with(mContext).load(image.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.NONE).override(width, height / 4).into(im);
+                Glide.with(mContext).load(image.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.NONE).override(mImageWidth, mImageHeight).into(im);
             }
         }
         LGImage icon = nativeAd.getIcon();
         if (icon != null && icon.isValid()) {
             ImageView im = nativeView.findViewById(R.id.iv_native_icon);
-            Glide.with(this).load(icon.getImageUrl()).into(im);
+            Glide.with(mContext).load(icon.getImageUrl()).into(im);
         }
         mCreativeButton = (Button) nativeView.findViewById(R.id.btn_native_creative);
         //可根据广告类型，为交互区域设置不同提示信息
 
         if (nativeAd.getInteractionType() == LGBaseAd.InteractionType.DOWNLOAD) {
             //如果初始化ttAdManager.createAdNative(getApplicationContext())没有传入activity 则需要在此传activity，否则影响使用Dislike逻辑
-            nativeAd.setActivityForDownloadApp(this);
+            nativeAd.setActivityForDownloadApp(mContext);
             mCreativeButton.setVisibility(View.VISIBLE);
             nativeAd.setDownloadCallback(downloadCallback); // 注册下载监听器
         } else if (nativeAd.getInteractionType() == LGBaseAd.InteractionType.DIAL) {
@@ -229,7 +237,7 @@ public class NativeBannerADActivity extends BaseActivity {
 
     //接入网盟的dislike 逻辑，有助于提示广告精准投放度
     private void bindDislikeAction(LGNativeAd ad, View dislikeView) {
-        final LGAdDislike ttAdDislike = ad.getDislikeDialog(this);
+        final LGAdDislike ttAdDislike = ad.getDislikeDialog(mContext);
         if (ttAdDislike != null) {
             ttAdDislike.setDislikeInteractionCallback(new LGAdDislike.InteractionCallback() {
                 @Override
