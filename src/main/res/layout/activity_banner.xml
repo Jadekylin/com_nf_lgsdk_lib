@@ -23,7 +23,7 @@
         android:padding="0dp"
         android:paddingTop="0dp"
         android:visibility="visible"
-        android:background="#D5D5D5">
+        android:background="#80000000">
     </FrameLayout>
 </RelativeLayout>
 

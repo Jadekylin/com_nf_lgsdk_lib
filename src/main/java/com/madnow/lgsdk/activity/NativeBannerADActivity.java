@@ -3,6 +3,7 @@ package com.madnow.lgsdk.activity;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -94,21 +95,20 @@ public class NativeBannerADActivity {
         // step2:(可选，强烈建议在合适的时机调用):申请部分权限，如read_phone_state,防止获取不了imei时候，下载类广告没有填充的问题。
         //LGSDK.requestPermissionIfNecessary(mContext);
         mCodeId = codeId;
-        loadBannerAd(codeId);
+        loadBannerAd();
     }
 
     /**
      * 加载广告
      *
-     * @param codeId 广告ID
      */
-    private void loadBannerAd(String codeId) {
+    private void loadBannerAd() {
         //step3:创建广告请求参数LGNativeBannerAdDTO
         LGNativeBannerAdDTO bannerADDTO = new LGNativeBannerAdDTO();
         // context
         bannerADDTO.context = mContext;
         // 广告ID
-        bannerADDTO.codeID = codeId;
+        bannerADDTO.codeID = mCodeId;
         bannerADDTO.requestAdCount = 1;
         // 设置期望的展示图片的大小
         bannerADDTO.expectedImageSize = new LGBaseConfigAdDTO.ExpectedImageSize(mImageWidth, mImageHeight);
@@ -118,6 +118,13 @@ public class NativeBannerADActivity {
             public void onError(int code, String message) {
                 LgSdkService.getInstance().adsError(mCodeId, AppMacros.AT_Banner_Bottom,code,message);
                 GMDebug.LogD("onError: code:" + code + ",message:" + message);
+
+//                new Handler().postDelayed(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        loadBannerAd();
+//                    }
+//                }, 60000);
             }
 
             @Override
@@ -127,6 +134,8 @@ public class NativeBannerADActivity {
                 }
                 LgSdkService.getInstance().adsLoaded(mCodeId, AppMacros.AT_Banner_Bottom);
                 mNativeAd = ads.get(0);
+
+//                showAd();
             }
         });
     }
