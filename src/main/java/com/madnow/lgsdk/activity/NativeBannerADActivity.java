@@ -144,21 +144,23 @@ public class NativeBannerADActivity {
      * 展示广告
      */
     public void showAd() {
-        View bannerView = LayoutInflater.from(mContext).inflate(R.layout.banner_native_ad, mBannerContainer, false);
-        if (bannerView == null) {
-            return;
-        }
-        if (mCreativeButton != null) {
-            //防止内存泄漏
-            mCreativeButton = null;
-        }
-        //step5:addview 展示广告
-        mBannerContainer.removeAllViews();
-        mBannerContainer.addView(bannerView);
+        if(mNativeAd != null){
+            View bannerView = LayoutInflater.from(mContext).inflate(R.layout.banner_native_ad, mBannerContainer, false);
+            if (bannerView == null) {
+                return;
+            }
+            if (mCreativeButton != null) {
+                //防止内存泄漏
+                mCreativeButton = null;
+            }
+            //step5:addview 展示广告
+            mBannerContainer.removeAllViews();
+            mBannerContainer.addView(bannerView);
 
-        LgSdkService.getInstance().adsShown(mCodeId, AppMacros.AT_Banner_Bottom);
-        //绑定原生广告的数据
-        setAdData(bannerView, mNativeAd);
+            LgSdkService.getInstance().adsShown(mCodeId, AppMacros.AT_Banner_Bottom);
+            //绑定原生广告的数据
+            setAdData(bannerView, mNativeAd);
+        }
     }
 
     public void hideAd() {
@@ -187,7 +189,9 @@ public class NativeBannerADActivity {
         LGImage icon = nativeAd.getIcon();
         if (icon != null && icon.isValid()) {
             ImageView im = nativeView.findViewById(R.id.iv_native_icon);
-            Glide.with(mContext).load(icon.getImageUrl()).into(im);
+            if(im != null){
+                Glide.with(mContext).load(icon.getImageUrl()).into(im);
+            }
         }
         mCreativeButton = (Button) nativeView.findViewById(R.id.btn_native_creative);
         //可根据广告类型，为交互区域设置不同提示信息
@@ -195,18 +199,18 @@ public class NativeBannerADActivity {
         if (nativeAd.getInteractionType() == LGBaseAd.InteractionType.DOWNLOAD) {
             //如果初始化ttAdManager.createAdNative(getApplicationContext())没有传入activity 则需要在此传activity，否则影响使用Dislike逻辑
             nativeAd.setActivityForDownloadApp(mContext);
-            mCreativeButton.setVisibility(View.VISIBLE);
+            if(mCreativeButton != null) mCreativeButton.setVisibility(View.VISIBLE);
             nativeAd.setDownloadCallback(downloadCallback); // 注册下载监听器
         } else if (nativeAd.getInteractionType() == LGBaseAd.InteractionType.DIAL) {
-            mCreativeButton.setVisibility(View.VISIBLE);
-            mCreativeButton.setText("立即拨打");
+            if(mCreativeButton != null) mCreativeButton.setVisibility(View.VISIBLE);
+            if(mCreativeButton != null) mCreativeButton.setText("立即拨打");
         } else if (nativeAd.getInteractionType() == LGBaseAd.InteractionType.LANDING_PAGE
                 || nativeAd.getInteractionType() == LGBaseAd.InteractionType.BROWSER) {
-            mCreativeButton.setVisibility(View.VISIBLE);
-            mCreativeButton.setText("查看详情");
+            if(mCreativeButton != null) mCreativeButton.setVisibility(View.VISIBLE);
+            if(mCreativeButton != null) mCreativeButton.setText("查看详情");
         } else {
-            mCreativeButton.setVisibility(View.GONE);
-            TToast.show(mContext, "交互类型异常");
+            if(mCreativeButton != null) mCreativeButton.setVisibility(View.GONE);
+            //TToast.show(mContext, "交互类型异常");
         }
 
         //可以被点击的view, 也可以把nativeView放进来意味整个广告区域可被点击
@@ -224,21 +228,21 @@ public class NativeBannerADActivity {
             @Override
             public void onAdClicked(View view, LGNativeAd ad) {
                 if (ad != null) {
-                    TToast.show(mContext, "广告" + ad.getTitle() + "被点击");
+                    //TToast.show(mContext, "广告" + ad.getTitle() + "被点击");
                 }
             }
 
             @Override
             public void onAdCreativeClick(View view, LGNativeAd ad) {
                 if (ad != null) {
-                    TToast.show(mContext, "广告" + ad.getTitle() + "被创意按钮被点击");
+                    //TToast.show(mContext, "广告" + ad.getTitle() + "被创意按钮被点击");
                 }
             }
 
             @Override
             public void onAdShow(LGNativeAd ad) {
                 if (ad != null) {
-                    TToast.show(mContext, "广告" + ad.getTitle() + "展示");
+                    //TToast.show(mContext, "广告" + ad.getTitle() + "展示");
                 }
             }
         });
