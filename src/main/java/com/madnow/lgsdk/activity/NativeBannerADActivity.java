@@ -21,6 +21,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.madnow.lgsdk.R;
 import com.madnow.lgsdk.service.LgSdkService;
 import com.madnow.lgsdk.utils.TToast;
+import com.ss.android.ttve.utils.UIUtils;
 import com.ss.union.game.sdk.LGSDK;
 import com.ss.union.sdk.ad.LGAdManager;
 import com.ss.union.sdk.ad.bean.LGImage;
@@ -54,8 +55,14 @@ public class NativeBannerADActivity {
     private Activity mContext;
     private String mCodeId;
     private View mViewRoot;
+
+    private int mImageWidth1 = 400;
+    private int mImageHeight1 = 180;
+
     private int mImageWidth = 500;
     private int mImageHeight = 240;
+    private final float Screen_W = 1080;
+    private final float Screen_H = 1920;
 
     public void initActivity(Context activity) {
 
@@ -72,12 +79,14 @@ public class NativeBannerADActivity {
 
         WindowManager manager = mContext.getWindowManager();
 
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        manager.getDefaultDisplay().getMetrics(outMetrics);
-        width = outMetrics.widthPixels;
-        height = outMetrics.heightPixels;
-
-
+        DisplayMetrics display = new DisplayMetrics();
+        manager.getDefaultDisplay().getMetrics(display);
+        width = display.widthPixels;
+        height = display.heightPixels;
+        float mPasX = width / Screen_W;
+        float mPasY = height / Screen_H;
+        mImageWidth = (int)(mImageWidth1 * mPasX);//UIUtils.px2dip(mActivity, gameAdW * mPasX);
+        mImageHeight = (int)(mImageHeight1 * mPasY);//UIUtils.px2dip(mActivity, gameAdH * mPasY);
 //        mContext = this.getApplicationContext();
         mBannerContainer = (FrameLayout) mViewRoot.findViewById(R.id.ad_banner_bottom);
 //        mLoadBannerAdBtn = (Button) findViewById(R.id.btn_banner_download);
